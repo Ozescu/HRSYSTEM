@@ -1,0 +1,41 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Talent Intelligence{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 38px; display: grid; gap: 26px;">
+    <div style="display: grid; gap: 14px; max-width: 740px;">
+        <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; letter-spacing: 0.08em; color: #1b4d6b;">HR PLATFORM</span>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.06;">
+            Recruit Smarter with <span style="color: #1b4d6b;">AIDEED</span>
+        </h1>
+        <p class="muted" style="font-size: 1.05rem; line-height: 1.6; max-width: 640px;">
+            AIDEED helps teams attract candidates, evaluate them with AI-assisted assessments, and make faster hiring decisions from one focused workspace.
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        {% if user.is_authenticated %}
+            <a href="/admin/" class="btn btn-primary">Open Admin</a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-warm">Create Account</a>
+            <a href="{% url 'login' %}" class="btn btn-secondary">I Already Have an Account</a>
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 6px;">
+        <article style="background: #ffffffcc; border: 1px solid var(--border); border-radius: 16px; padding: 16px;">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 8px;">Role-Aware Accounts</h3>
+            <p class="muted" style="margin: 0;">Unified candidate, recruiter, and admin flows with permission-ready architecture.</p>
+        </article>
+        <article style="background: #ffffffcc; border: 1px solid var(--border); border-radius: 16px; padding: 16px;">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 8px;">AI Assessment Engine</h3>
+            <p class="muted" style="margin: 0;">Generate and evaluate hiring tests to qualify applicants with confidence.</p>
+        </article>
+        <article style="background: #ffffffcc; border: 1px solid var(--border); border-radius: 16px; padding: 16px;">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 8px;">Hiring Pipeline Focus</h3>
+            <p class="muted" style="margin: 0;">Jobs, applications, and screening data stay connected in one backend foundation.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}

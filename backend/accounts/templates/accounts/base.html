@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AIDEED{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f1e2a;
+            --ocean: #1b4d6b;
+            --mint: #89d9c8;
+            --sand: #f6efe5;
+            --coral: #f5755e;
+            --card: rgba(255, 255, 255, 0.86);
+            --border: rgba(15, 30, 42, 0.14);
+            --shadow: 0 20px 40px rgba(15, 30, 42, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "IBM Plex Sans", sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at 15% 10%, #d7f4ee 0%, transparent 45%),
+                        radial-gradient(circle at 85% 20%, #ffd5b6 0%, transparent 35%),
+                        linear-gradient(160deg, #f4f8fb 0%, #edf5ec 45%, #fff9ef 100%);
+        }
+
+        .shape {
+            position: fixed;
+            z-index: -1;
+            border-radius: 999px;
+            filter: blur(0.5px);
+            animation: float 7s ease-in-out infinite;
+        }
+
+        .shape.one {
+            width: 280px;
+            height: 280px;
+            top: -90px;
+            right: -60px;
+            background: linear-gradient(140deg, #8ad7d0, #2f7aa0);
+        }
+
+        .shape.two {
+            width: 200px;
+            height: 200px;
+            bottom: 4%;
+            left: -70px;
+            background: linear-gradient(140deg, #fba96a, #f5755e);
+            animation-delay: 1s;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .site-nav {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 20px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            color: var(--ink);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            border: 1px solid transparent;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 10px 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--ocean);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(27, 77, 107, 0.25);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--ink);
+            border-color: var(--border);
+        }
+
+        .btn-warm {
+            background: var(--coral);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(245, 117, 94, 0.25);
+        }
+
+        .page {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 20px 18px 50px;
+        }
+
+        .messages {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .message {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(6px);
+            animation: rise 0.45s ease;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        form {
+            display: grid;
+            gap: 14px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 11px 12px;
+            font-size: 0.98rem;
+            font-family: inherit;
+            background: #fff;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid #8bd6ca;
+            border-color: #6fb9ad;
+        }
+
+        .errorlist {
+            margin: 6px 0 0;
+            padding-left: 18px;
+            color: #b3261e;
+            font-size: 0.88rem;
+        }
+
+        .muted {
+            color: rgba(15, 30, 42, 0.68);
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 760px) {
+            .site-nav {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .nav-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shape one"></div>
+    <div class="shape two"></div>
+
+    <header class="site-nav">
+        <a href="{% url 'landing' %}" class="brand">AIDEED</a>
+        <div class="nav-actions">
+            {% if user.is_authenticated %}
+                <span class="muted">Hi, {{ user.first_name|default:user.email }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary" type="submit">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-secondary">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="page">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

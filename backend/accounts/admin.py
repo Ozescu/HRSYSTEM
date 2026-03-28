@@ -1,3 +1,41 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-# Register your models here.
+from .models import Company, Profile, User
+
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+	model = User
+	ordering = ("email",)
+	list_display = ("email", "first_name", "last_name", "role", "is_active", "is_staff")
+	list_filter = ("role", "is_active", "is_staff", "is_superuser")
+	search_fields = ("email", "first_name", "last_name")
+
+	fieldsets = (
+		(None, {"fields": ("email", "password")}),
+		("Personal info", {"fields": ("first_name", "last_name", "role")}),
+		("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+		("Important dates", {"fields": ("last_login", "date_joined")}),
+	)
+	add_fieldsets = (
+		(
+			None,
+			{
+				"classes": ("wide",),
+				"fields": ("email", "password1", "password2", "first_name", "last_name", "role", "is_active", "is_staff"),
+			},
+		),
+	)
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+	list_display = ("user", "phone_number", "created_at")
+	search_fields = ("user__email", "phone_number")
+
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+	list_display = ("name", "owner", "location", "created_at")
+	search_fields = ("name", "owner__email", "location")

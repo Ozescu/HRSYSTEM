@@ -1,0 +1,59 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Register{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 620px; margin: 24px auto 0; padding: 28px;">
+    <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 8px;">Create Your AIDEED Account</h1>
+    <p class="muted" style="margin-top: 0;">Start building smarter hiring workflows in minutes.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div>
+            <label for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {{ form.email.errors }}
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+            <div>
+                <label for="{{ form.first_name.id_for_label }}">First name</label>
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+            </div>
+            <div>
+                <label for="{{ form.last_name.id_for_label }}">Last name</label>
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+            </div>
+        </div>
+
+        <div>
+            <label for="{{ form.role.id_for_label }}">Role</label>
+            {{ form.role }}
+            {{ form.role.errors }}
+        </div>
+
+        <div>
+            <label for="{{ form.password1.id_for_label }}">Password</label>
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+        </div>
+
+        <div>
+            <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+        </div>
+
+        <button type="submit" class="btn btn-warm" style="width: 100%;">Register</button>
+    </form>
+
+    <p class="muted" style="margin: 14px 0 0; text-align: center;">
+        Already registered?
+        <a href="{% url 'login' %}" style="color: #1b4d6b; font-weight: 600;">Login here</a>
+    </p>
+</section>
+{% endblock %}
