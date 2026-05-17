@@ -1,0 +1,65 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Jobs{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 26px; display: grid; gap: 18px;">
+    <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div>
+            <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 6px;">Jobs Board</h1>
+            <p class="muted" style="margin: 0;">Search opportunities and apply in one click.</p>
+        </div>
+    </div>
+
+    <form method="get" style="display: grid; gap: 10px; grid-template-columns: 2fr 1fr auto; align-items: end;">
+        <div>
+            <label for="q">Search title</label>
+            <input id="q" name="q" value="{{ query }}" placeholder="Backend, Product, Data...">
+        </div>
+        <div>
+            <label for="employment_type">Employment type</label>
+            <select id="employment_type" name="employment_type">
+                <option value="">All</option>
+                {% for value, label in employment_choices %}
+                    <option value="{{ value }}" {% if value == employment_type %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Filter</button>
+    </form>
+</section>
+
+<section style="margin-top: 16px; display: grid; gap: 12px;">
+    {% for job in jobs %}
+        <article class="card" style="padding: 18px; display: grid; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <div>
+                    <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem;">{{ job.title }}</h2>
+                    <p class="muted" style="margin: 4px 0 0;">{{ job.company.name|default:job.recruiter.email }}</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: start;">
+                    <span class="pill-link" style="pointer-events:none;">{{ job.get_employment_type_display }}</span>
+                    {% if job.location %}<span class="pill-link" style="pointer-events:none;">{{ job.location }}</span>{% endif %}
+                </div>
+            </div>
+
+            <p class="muted" style="margin: 0; line-height: 1.6;">{{ job.description|truncatechars:220 }}</p>
+
+            {% if user.role == 'candidate' %}
+                <form method="post" enctype="multipart/form-data" style="display: grid; gap: 8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="apply_job">
+                    <input type="hidden" name="job_id" value="{{ job.id }}">
+                    <label for="cover_letter_{{ job.id }}">Quick cover letter (optional)</label>
+                    <textarea id="cover_letter_{{ job.id }}" name="cover_letter" rows="3" placeholder="Tell why you fit this role"></textarea>
+                    <label for="cv_{{ job.id }}">CV PDF</label>
+                    <input id="cv_{{ job.id }}" type="file" name="cv" accept="application/pdf,.pdf">
+                    <button type="submit" class="btn btn-warm" style="justify-self: start;">Apply Now</button>
+                </form>
+            {% endif %}
+        </article>
+    {% empty %}
+        <article class="card" style="padding: 20px;">No jobs found for this filter.</article>
+    {% endfor %}
+</section>
+{% endblock %}

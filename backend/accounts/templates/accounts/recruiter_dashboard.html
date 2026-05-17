@@ -1,0 +1,159 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Recruiter Dashboard{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 30px; display: grid; gap: 20px;">
+    <div style="display: grid; gap: 8px;">
+        <span style="font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.08em; font-size: 0.84rem; color: #1b4d6b;">RECRUITER SPACE</span>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.06;">Publish Offers and Manage Screening</h1>
+        <p class="muted" style="margin: 0; max-width: 760px;">
+            Create offers, review incoming applications, then manually assign an assessment once a candidate is accepted.
+            The AI assessment generator can be plugged in later without changing this workflow.
+        </p>
+    </div>
+
+    <div class="grid-cards">
+        {% for key, value in stats.items %}
+            <article class="stat-card">
+                <span class="muted" style="text-transform: uppercase; letter-spacing: 0.06em;">{{ key }}</span>
+                <span class="stat-number">{{ value }}</span>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="margin-top: 18px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start;">
+    <article class="card" style="padding: 20px; display: grid; gap: 14px;">
+        <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">Post a New Job Offer</h2>
+        <form method="post" style="display: grid; gap: 12px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_job">
+            {{ job_form.non_field_errors }}
+            {% for field in job_form %}
+                <div>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Publish Offer</button>
+        </form>
+    </article>
+
+    <article class="card" style="padding: 20px; display: grid; gap: 14px;">
+        <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">Assign Assessment Manually</h2>
+        <p class="muted" style="margin: 0;">Available only for accepted applications on your jobs.</p>
+        <form method="post" style="display: grid; gap: 12px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_assessment">
+            {{ assessment_form.non_field_errors }}
+            {% for field in assessment_form %}
+                <div>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-warm">Create Assessment</button>
+        </form>
+    </article>
+</section>
+
+<section style="margin-top: 18px; display: grid; gap: 16px;">
+    <div>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 10px; font-size: 1.2rem;">Your Recent Job Offers</h2>
+        <div style="display: grid; gap: 10px;">
+            {% for job in recent_jobs %}
+                <article class="card" style="padding: 14px; display: grid; gap: 6px;">
+                    <strong style="font-family: 'Space Grotesk', sans-serif;">{{ job.title }}</strong>
+                    <p class="muted" style="margin: 0;">{{ job.location|default:"Location not set" }}</p>
+                    <p class="muted" style="margin: 0;">{{ job.get_employment_type_display }} · {% if job.is_active %}Active{% else %}Paused{% endif %}</p>
+                </article>
+            {% empty %}
+                <article class="card" style="padding: 14px;">No job offers yet.</article>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 10px; font-size: 1.2rem;">Recent Applications</h2>
+        <div style="display: grid; gap: 10px;">
+            {% for application in applications %}
+                <article class="card" style="padding: 14px; display: grid; gap: 6px;">
+                    <strong style="font-family: 'Space Grotesk', sans-serif;">{{ application.candidate.email }}</strong>
+                    <p class="muted" style="margin: 0;">{{ application.job.title }}</p>
+                    <span class="pill-link" style="pointer-events:none; text-transform: capitalize; width: fit-content;">{{ application.get_status_display }}</span>
+                    {% if application.cv %}
+                        <a href="{{ application.cv.url }}" target="_blank" rel="noopener">View CV</a>
+                    {% endif %}
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" data-modal-open="assessment-launch-modal" data-application-id="{{ application.id }}">Accept & Create Assessment</button>
+                        <form method="post" style="margin: 0; display: inline-flex;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_application_status">
+                            <input type="hidden" name="application_id" value="{{ application.id }}">
+                            <button type="submit" name="status" value="rejected" class="btn btn-warm">Refuse</button>
+                        </form>
+                    </div>
+                </article>
+            {% empty %}
+                <article class="card" style="padding: 14px;">No applications yet.</article>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0 0 10px; font-size: 1.2rem;">Accepted Applications Ready for Assessment</h2>
+        <div style="display: grid; gap: 10px;">
+            {% for accepted_application in accepted_applications %}
+                <article class="card" style="padding: 14px; display: grid; gap: 6px;">
+                    <strong style="font-family: 'Space Grotesk', sans-serif;">{{ accepted_application.candidate.email }}</strong>
+                    <p class="muted" style="margin: 0;">{{ accepted_application.job.title }}</p>
+                    {% if accepted_application.cv %}
+                        <a href="{{ accepted_application.cv.url }}" target="_blank" rel="noopener">View CV</a>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <article class="card" style="padding: 14px;">No accepted applications yet.</article>
+            {% endfor %}
+        </div>
+    </div>
+
+</section>
+
+<div id="assessment-launch-modal" class="modal-backdrop {% if launch_modal_open %}is-open{% endif %}" data-modal data-assessment-auto-open="false">
+    <article class="modal-panel card" style="padding: 24px;">
+        <div class="modal-header">
+            <div>
+                <span class="muted" style="text-transform: uppercase; letter-spacing: 0.08em;">Accept Applicant</span>
+                <h2 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif;">Create an assessment after acceptance</h2>
+                <p class="muted" style="margin: 8px 0 0;">The blur overlay keeps the recruiter focused on one decision and one assessment form.</p>
+            </div>
+            <button type="button" class="btn btn-secondary" data-modal-close>Close</button>
+        </div>
+
+        <form method="post" style="display: grid; gap: 12px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="accept_and_create_assessment">
+            {{ launch_form.application_id }}
+            <div>
+                <label for="{{ launch_form.title.id_for_label }}">Assessment title</label>
+                {{ launch_form.title }}
+                {{ launch_form.title.errors }}
+            </div>
+            <div>
+                <label for="{{ launch_form.instructions.id_for_label }}">Instructions</label>
+                {{ launch_form.instructions }}
+                {{ launch_form.instructions.errors }}
+            </div>
+            <div>
+                <label for="{{ launch_form.duration_minutes.id_for_label }}">Duration in minutes</label>
+                {{ launch_form.duration_minutes }}
+                {{ launch_form.duration_minutes.errors }}
+            </div>
+            <button type="submit" class="btn btn-primary" style="justify-self: start;">Accept and send assessment</button>
+        </form>
+    </article>
+</div>
+{% endblock %}

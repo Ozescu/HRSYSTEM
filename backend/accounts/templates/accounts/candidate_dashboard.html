@@ -1,0 +1,162 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Candidate Dashboard{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 30px; display: grid; gap: 20px;">
+    <div style="display: grid; gap: 8px;">
+        <span style="font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.08em; font-size: 0.84rem; color: #1b4d6b;">CANDIDATE SPACE</span>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.06;">Open Roles Tailored for You</h1>
+        <p class="muted" style="margin: 0; max-width: 720px;">
+            Browse active job offers, apply instantly, and follow the state of your candidatures without leaving your dashboard.
+        </p>
+    </div>
+
+    <div class="grid-cards">
+        {% for key, value in stats.items %}
+            <article class="stat-card">
+                <span class="muted" style="text-transform: uppercase; letter-spacing: 0.06em;">{{ key }}</span>
+                <span class="stat-number">{{ value }}</span>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+{% if assessment_notification %}
+<section class="card" style="margin-top: 18px; padding: 18px; display: grid; gap: 10px; border-color: rgba(27, 77, 107, 0.25);">
+    <span class="muted" style="text-transform: uppercase; letter-spacing: 0.08em;">Assessment notification</span>
+    <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">You have been accepted and an assessment is ready</h2>
+    <p style="margin: 0; line-height: 1.6;">{{ assessment_notification.application.job.title }} is waiting for your submission. Open the assessment and start the countdown when you are ready.</p>
+    <button type="button" class="btn btn-primary" style="justify-self: start;" data-modal-open="candidate-assessment-modal">Start Assessment</button>
+</section>
+{% endif %}
+
+<section style="margin-top: 18px; display: grid; gap: 14px;">
+    <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">Recommended Openings</h2>
+    <div style="display: grid; gap: 12px;">
+        {% for job in active_jobs %}
+            <article class="card" style="padding: 18px; display: grid; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <div>
+                        <h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem;">{{ job.title }}</h3>
+                        <p class="muted" style="margin: 4px 0 0;">{{ job.company.name|default:job.recruiter.email }}</p>
+                    </div>
+                    <span class="pill-link" style="pointer-events:none;">{{ job.get_employment_type_display }}</span>
+                </div>
+                <p class="muted" style="margin: 0; line-height: 1.6;">{{ job.description|truncatechars:180 }}</p>
+                <form method="post" enctype="multipart/form-data" style="display: grid; gap: 8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="apply_job">
+                    <input type="hidden" name="job_id" value="{{ job.id }}">
+                    <label for="candidate_cover_letter_{{ job.id }}">Cover letter</label>
+                    <textarea id="candidate_cover_letter_{{ job.id }}" name="cover_letter" rows="3" placeholder="Tell why you're a fit for this role"></textarea>
+                    <label for="candidate_cv_{{ job.id }}">CV PDF</label>
+                    <input id="candidate_cv_{{ job.id }}" type="file" name="cv" accept="application/pdf,.pdf">
+                    <button type="submit" class="btn btn-warm" style="justify-self: start;">Apply from Dashboard</button>
+                </form>
+            </article>
+        {% empty %}
+            <article class="card" style="padding: 18px;">No active jobs at the moment.</article>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="margin-top: 18px; display: grid; gap: 14px;">
+    <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">Assigned Assessments</h2>
+    <div style="display: grid; gap: 12px;">
+        {% for assessment in assigned_assessments %}
+            <article class="card" style="padding: 18px; display: grid; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <div>
+                        <h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem;">{{ assessment.title }}</h3>
+                        <p class="muted" style="margin: 4px 0 0;">{{ assessment.application.job.title }}</p>
+                    </div>
+                    <span class="pill-link" style="pointer-events:none; text-transform: capitalize;">{% if assessment.submission %}Submitted{% else %}Pending submission{% endif %}</span>
+                </div>
+                {% if assessment.instructions %}
+                    <p style="margin: 0; line-height: 1.6;">{{ assessment.instructions|truncatechars:220 }}</p>
+                {% endif %}
+            </article>
+        {% empty %}
+            <article class="card" style="padding: 18px;">No assessments assigned yet.</article>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="margin-top: 18px; display: grid; gap: 14px;">
+    <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">Your Recent Applications</h2>
+    <div style="display: grid; gap: 12px;">
+        {% for application in recent_applications %}
+            <article class="card" style="padding: 16px; display: grid; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <strong style="font-family: 'Space Grotesk', sans-serif;">{{ application.job.title }}</strong>
+                    <span class="pill-link" style="pointer-events:none; text-transform: capitalize;">{{ application.get_status_display }}</span>
+                </div>
+                <p class="muted" style="margin: 0;">Recruiter: {{ application.job.recruiter.email }}</p>
+                <p class="muted" style="margin: 0;">Applied on {{ application.applied_at|date:'M d, Y H:i' }}</p>
+                {% if application.cv %}
+                    <a href="{{ application.cv.url }}" target="_blank" rel="noopener">View CV</a>
+                {% endif %}
+            </article>
+        {% empty %}
+            <article class="card" style="padding: 18px;">No applications yet.</article>
+        {% endfor %}
+    </div>
+</section>
+
+<div id="candidate-assessment-modal" class="modal-backdrop {% if assessment_notification and not assessment_notification.submission %}is-open{% endif %}" data-modal data-assessment-auto-open="{% if assessment_notification and not assessment_notification.submission %}true{% else %}false{% endif %}">
+    <article class="modal-panel card" style="padding: 24px;">
+        <div class="modal-header">
+            <div>
+                <span class="muted" style="text-transform: uppercase; letter-spacing: 0.08em;">Assessment ready</span>
+                <h2 style="margin: 4px 0 0; font-family: 'Space Grotesk', sans-serif;">{% if assessment_notification %}{{ assessment_notification.title }}{% else %}Your assessment{% endif %}</h2>
+                <p class="muted" style="margin: 8px 0 0;">{% if assessment_notification %}{{ assessment_notification.application.job.title }}{% endif %}</p>
+            </div>
+            <button type="button" class="btn btn-secondary" data-modal-close>Close</button>
+        </div>
+
+        {% if assessment_notification %}
+        <div data-assessment-timer data-duration-minutes="{{ assessment_notification.duration_minutes }}" data-assessment-id="{{ assessment_notification.id }}" style="display: grid; gap: 14px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <span class="timer-chip">Time left <span data-countdown>00:00:00</span></span>
+                <span class="muted" data-assessment-status>Waiting to start</span>
+            </div>
+
+            {% if assessment_notification.instructions %}
+                <div class="card" style="padding: 14px; background: rgba(255,255,255,0.54);">
+                    <strong style="font-family: 'Space Grotesk', sans-serif; display: block; margin-bottom: 8px;">Instructions</strong>
+                    <p style="margin: 0; line-height: 1.6;">{{ assessment_notification.instructions }}</p>
+                </div>
+            {% endif %}
+
+            <button type="button" class="btn btn-primary" data-start-assessment>Start Assessment</button>
+
+            <div data-assessment-workspace hidden style="display: grid; gap: 12px;">
+                <p class="muted" style="margin: 0;">The countdown is running. Complete the work and submit your answer as a PDF file or Python code below.</p>
+                {% if assessment_notification.submission %}
+                    <div class="card" style="padding: 12px; background: rgba(255,255,255,0.45); display: grid; gap: 8px;">
+                        <strong style="font-family: 'Space Grotesk', sans-serif;">Current submission</strong>
+                        {% if assessment_notification.submission.submission_file %}
+                            <a href="{{ assessment_notification.submission.submission_file.url }}" target="_blank" rel="noopener">Download PDF submission</a>
+                        {% endif %}
+                        {% if assessment_notification.submission.python_code %}
+                            <pre style="margin: 0; white-space: pre-wrap;">{{ assessment_notification.submission.python_code }}</pre>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <form method="post" enctype="multipart/form-data" style="display: grid; gap: 8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="submit_assessment">
+                    <input type="hidden" name="assessment_id" value="{{ assessment_notification.id }}">
+                    <label for="assessment_submission_file">PDF file</label>
+                    <input id="assessment_submission_file" type="file" name="submission_file" accept="application/pdf,.pdf">
+                    <label for="assessment_python_code">Python code</label>
+                    <textarea id="assessment_python_code" name="python_code" rows="7" placeholder="Paste your Python solution here"></textarea>
+                    <button type="submit" class="btn btn-warm" style="justify-self: start;">Submit Assessment</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}

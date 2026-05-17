@@ -71,8 +71,8 @@ class Company(models.Model):
 
 	def clean(self):
 		super().clean()
-		if self.owner and not self.owner.is_recruiter():
-			raise ValidationError({"owner": "Only recruiters can own companies."})
+		if self.owner and not (self.owner.is_recruiter() or self.owner.role == self.owner.Role.ADMIN or self.owner.is_staff or self.owner.is_superuser):
+			raise ValidationError({"owner": "Only recruiters or admin users can own companies."})
 
 	def save(self, *args, **kwargs):
 		self.full_clean()

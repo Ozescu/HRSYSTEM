@@ -1,0 +1,58 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Assessments{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 26px; display: grid; gap: 12px;">
+    <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0;">Assessments Hub</h1>
+    <p class="muted" style="margin: 0;">See assigned evaluations and published results.</p>
+</section>
+
+<section style="margin-top: 16px; display: grid; gap: 16px;">
+    <div>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin: 0 0 10px;">Assessments</h2>
+        <div style="display: grid; gap: 10px;">
+            {% for assessment in assessments %}
+                <article class="card" style="padding: 14px; display: grid; gap: 8px;">
+                    <h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif;">{{ assessment.title }}</h3>
+                    <p class="muted" style="margin: 0;">Job: {{ assessment.application.job.title }}</p>
+                    <p class="muted" style="margin: 0;">Duration: {{ assessment.duration_minutes }} min</p>
+                    {% if assessment.instructions %}
+                        <p style="margin: 0; line-height: 1.6;">{{ assessment.instructions|truncatechars:220 }}</p>
+                    {% endif %}
+                    {% if assessment.submission %}
+                        <div class="card" style="padding: 12px; background: rgba(255,255,255,0.45); display: grid; gap: 8px;">
+                            <strong style="font-family: 'Space Grotesk', sans-serif;">Submission</strong>
+                            {% if assessment.submission.submission_file %}
+                                <a href="{{ assessment.submission.submission_file.url }}" target="_blank" rel="noopener">Download PDF submission</a>
+                            {% endif %}
+                            {% if assessment.submission.python_code %}
+                                <pre style="margin: 0; white-space: pre-wrap;">{{ assessment.submission.python_code }}</pre>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <article class="card" style="padding: 14px;">No assessments available.</article>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin: 0 0 10px;">Results</h2>
+        <div style="display: grid; gap: 10px;">
+            {% for result in results %}
+                <article class="card" style="padding: 14px; display: grid; gap: 8px;">
+                    <h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif;">{{ result.application.job.title }}</h3>
+                    <p class="muted" style="margin: 0;">Score: {{ result.total_score }} ({{ result.percentage }}%)</p>
+                    <p style="margin: 0; font-weight: 600; color: {% if result.passed %}#0f7b52{% else %}#b3261e{% endif %};">
+                        {% if result.passed %}Passed{% else %}Not passed{% endif %}
+                    </p>
+                </article>
+            {% empty %}
+                <article class="card" style="padding: 14px;">No results published yet.</article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

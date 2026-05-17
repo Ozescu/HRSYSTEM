@@ -1,0 +1,44 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Dashboard{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 30px; display: grid; gap: 20px;">
+    <div style="display: grid; gap: 8px;">
+        <span style="font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.08em; font-size: 0.84rem; color: #1b4d6b;">WORKSPACE</span>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.06;">Your Hiring Command Center</h1>
+        <p class="muted" style="margin: 0; max-width: 720px;">
+            Track hiring progress, monitor pipeline activity, and jump to the next important action from a single cockpit.
+        </p>
+    </div>
+
+    <div class="grid-cards">
+        {% for key, value in stats.items %}
+            <article class="stat-card">
+                <span class="muted" style="text-transform: uppercase; letter-spacing: 0.06em;">{{ key }}</span>
+                <span class="stat-number">{{ value }}</span>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section style="margin-top: 18px; display: grid; gap: 14px;">
+    <h2 style="font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 1.2rem;">Latest Open Jobs</h2>
+    <div class="grid-cards">
+        {% for job in latest_jobs %}
+            <article class="card" style="padding: 16px; display: grid; gap: 8px;">
+                <h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif;">{{ job.title }}</h3>
+                <p class="muted" style="margin: 0;">
+                    {{ job.company.name|default:job.recruiter.email }}
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span class="pill-link" style="pointer-events:none;">{{ job.get_employment_type_display }}</span>
+                    {% if job.location %}<span class="pill-link" style="pointer-events:none;">{{ job.location }}</span>{% endif %}
+                </div>
+            </article>
+        {% empty %}
+            <article class="card" style="padding: 16px;">No active jobs yet.</article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

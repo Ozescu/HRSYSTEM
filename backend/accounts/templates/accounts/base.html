@@ -88,6 +88,30 @@
             align-items: center;
         }
 
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .pill-link {
+            text-decoration: none;
+            color: var(--ink);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.68);
+            transition: all 0.2s ease;
+        }
+
+        .pill-link:hover {
+            border-color: rgba(27, 77, 107, 0.42);
+            transform: translateY(-1px);
+        }
+
         .btn {
             border: 1px solid transparent;
             text-decoration: none;
@@ -153,6 +177,74 @@
             animation: rise 0.45s ease;
         }
 
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 30, 42, 0.42);
+            backdrop-filter: blur(14px);
+            z-index: 1000;
+        }
+
+        .modal-backdrop.is-open {
+            display: flex;
+        }
+
+        .modal-panel {
+            width: min(760px, 100%);
+            max-height: min(88vh, 860px);
+            overflow: auto;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(15, 30, 42, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .timer-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(27, 77, 107, 0.08);
+            color: var(--ocean);
+            font-weight: 700;
+            font-family: "Space Grotesk", sans-serif;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            background: #ffffffcc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            display: grid;
+            gap: 6px;
+        }
+
+        .stat-number {
+            font-family: "Space Grotesk", sans-serif;
+            font-weight: 700;
+            font-size: clamp(1.2rem, 4vw, 2rem);
+        }
+
         @keyframes rise {
             from {
                 opacity: 0;
@@ -209,6 +301,10 @@
                 gap: 12px;
             }
 
+            .nav-links {
+                width: 100%;
+            }
+
             .nav-actions {
                 width: 100%;
                 justify-content: flex-end;
@@ -222,6 +318,14 @@
 
     <header class="site-nav">
         <a href="{% url 'landing' %}" class="brand">AIDEED</a>
+        {% if user.is_authenticated %}
+            <nav class="nav-links" aria-label="Main">
+                <a href="{% url 'dashboard' %}" class="pill-link">Dashboard</a>
+                <a href="{% url 'jobs-board' %}" class="pill-link">Jobs</a>
+                <a href="{% url 'applications-board' %}" class="pill-link">Applications</a>
+                <a href="{% url 'assessments-board' %}" class="pill-link">Assessments</a>
+            </nav>
+        {% endif %}
         <div class="nav-actions">
             {% if user.is_authenticated %}
                 <span class="muted">Hi, {{ user.first_name|default:user.email }}</span>
@@ -247,5 +351,140 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const openModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (!modal) {
+                    return;
+                }
+                modal.classList.add("is-open");
+                document.body.style.overflow = "hidden";
+            };
+
+            const closeModal = (modal) => {
+                modal.classList.remove("is-open");
+                document.body.style.overflow = "";
+            };
+
+            document.querySelectorAll("[data-modal-open]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const modalId = button.getAttribute("data-modal-open");
+                    const modal = document.getElementById(modalId);
+                    const applicationId = button.getAttribute("data-application-id");
+                    if (modal && applicationId) {
+                        const hidden = modal.querySelector("[data-application-id-input]");
+                        if (hidden) {
+                            hidden.value = applicationId;
+                        }
+                    }
+                    openModal(modalId);
+                });
+            });
+
+            document.querySelectorAll("[data-modal-close]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const modal = button.closest("[data-modal]");
+                    if (modal) {
+                        closeModal(modal);
+                    }
+                });
+            });
+
+            document.querySelectorAll("[data-modal]").forEach((modal) => {
+                modal.addEventListener("click", (event) => {
+                    if (event.target === modal) {
+                        closeModal(modal);
+                    }
+                });
+            });
+
+            document.querySelectorAll("[data-assessment-timer]").forEach((timerRoot) => {
+                const durationMinutes = Number(timerRoot.getAttribute("data-duration-minutes") || "0");
+                const assessmentId = timerRoot.getAttribute("data-assessment-id") || "";
+                const startButton = timerRoot.querySelector("[data-start-assessment]");
+                const statusLabel = timerRoot.querySelector("[data-assessment-status]");
+                const timerLabel = timerRoot.querySelector("[data-countdown]");
+                const workspace = timerRoot.querySelector("[data-assessment-workspace]");
+                const storageKey = assessmentId ? `assessment_started_${assessmentId}` : "";
+
+                const format = (totalSeconds) => {
+                    const safeSeconds = Math.max(0, totalSeconds);
+                    const hours = Math.floor(safeSeconds / 3600);
+                    const minutes = Math.floor((safeSeconds % 3600) / 60);
+                    const seconds = safeSeconds % 60;
+                    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+                };
+
+                const update = () => {
+                    if (!storageKey || !timerLabel) {
+                        return;
+                    }
+
+                    const startedAt = Number(localStorage.getItem(storageKey) || "0");
+                    if (!startedAt) {
+                        timerLabel.textContent = format(durationMinutes * 60);
+                        if (statusLabel) {
+                            statusLabel.textContent = "Waiting to start";
+                        }
+                        return;
+                    }
+
+                    const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+                    const remainingSeconds = (durationMinutes * 60) - elapsedSeconds;
+                    timerLabel.textContent = format(remainingSeconds);
+                    if (statusLabel) {
+                        statusLabel.textContent = remainingSeconds > 0 ? "In progress" : "Time finished";
+                    }
+                    if (workspace) {
+                        workspace.hidden = false;
+                    }
+                    if (remainingSeconds <= 0) {
+                        clearInterval(intervalId);
+                    }
+                };
+
+                if (timerLabel) {
+                    timerLabel.textContent = format(durationMinutes * 60);
+                }
+
+                let intervalId = null;
+                if (storageKey && localStorage.getItem(storageKey)) {
+                    if (workspace) {
+                        workspace.hidden = false;
+                    }
+                    intervalId = window.setInterval(update, 1000);
+                    update();
+                }
+
+                if (startButton) {
+                    startButton.addEventListener("click", () => {
+                        if (storageKey && !localStorage.getItem(storageKey)) {
+                            localStorage.setItem(storageKey, String(Date.now()));
+                        }
+                        if (workspace) {
+                            workspace.hidden = false;
+                        }
+                        if (statusLabel) {
+                            statusLabel.textContent = "In progress";
+                        }
+                        if (timerLabel) {
+                            timerLabel.textContent = format(durationMinutes * 60);
+                        }
+                        if (!intervalId) {
+                            intervalId = window.setInterval(update, 1000);
+                        }
+                        update();
+                    });
+                }
+            });
+
+            document.querySelectorAll("[data-assessment-auto-open='true']").forEach((modal) => {
+                modal.classList.add("is-open");
+                document.body.style.overflow = "hidden";
+            });
+        });
+    </script>
 </body>
 </html>

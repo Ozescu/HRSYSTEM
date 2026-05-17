@@ -1,0 +1,40 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}AIDEED | Applications{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 26px; display: grid; gap: 12px;">
+    <h1 style="font-family: 'Space Grotesk', sans-serif; margin: 0;">Applications</h1>
+    <p class="muted" style="margin: 0;">Track application statuses across your pipeline.</p>
+</section>
+
+<section style="margin-top: 16px; display: grid; gap: 12px;">
+    {% for application in applications %}
+        <article class="card" style="padding: 16px; display: grid; gap: 9px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 1.12rem;">{{ application.job.title }}</h2>
+                <span class="pill-link" style="pointer-events:none; text-transform: capitalize;">{{ application.get_status_display }}</span>
+            </div>
+            <p class="muted" style="margin: 0;">Candidate: {{ application.candidate.email }}</p>
+            <p class="muted" style="margin: 0;">Applied on: {{ application.applied_at|date:'M d, Y H:i' }}</p>
+            {% if application.cover_letter %}
+                <p style="margin: 0; line-height: 1.6;">{{ application.cover_letter|truncatechars:230 }}</p>
+            {% endif %}
+            {% if application.cv %}
+                <a href="{{ application.cv.url }}" target="_blank" rel="noopener">View CV</a>
+            {% endif %}
+            {% if user.role == 'recruiter' or user.role == 'admin' or user.is_staff or user.is_superuser %}
+                <form method="post" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_application_status">
+                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                    <button type="submit" name="status" value="accepted" class="btn btn-primary">Accept</button>
+                    <button type="submit" name="status" value="rejected" class="btn btn-warm">Refuse</button>
+                </form>
+            {% endif %}
+        </article>
+    {% empty %}
+        <article class="card" style="padding: 18px;">No applications yet.</article>
+    {% endfor %}
+</section>
+{% endblock %}
